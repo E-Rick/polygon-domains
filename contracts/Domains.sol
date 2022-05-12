@@ -11,8 +11,11 @@ contract Domains {
     // Checkout our new mapping! This will store values
     mapping(string => string) public records;
 
+    // Stores the nft addresses associated with domain
+    mapping(string => string) public nfts;
+
     constructor() {
-        console.log("THIS IS MY DOMAIN CONTRACT. NICE.");
+        console.log("WRECS DOMAIN SERVICE CONTRACT.");
     }
 
     // A register function that adds their names to our mapping
@@ -34,11 +37,21 @@ contract Domains {
         records[name] = record;
     }
 
+    function setNFT(string calldata name, string calldata nft) public {
+        // Check that the owner is the transaction sender
+        require(domains[name] == msg.sender);
+        nfts[name] = nft;
+    }
+
     function getRecord(string calldata name)
         public
         view
         returns (string memory)
     {
         return records[name];
+    }
+
+    function getNFT(string calldata name) public view returns (string memory) {
+        return nfts[name];
     }
 }

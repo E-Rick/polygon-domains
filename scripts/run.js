@@ -17,6 +17,12 @@ const main = async () => {
 	await txn.wait();
 	let record = await domainContract.getRecord("regen");
 	console.log("Record:", record);
+
+	txn = await domainContract.setNFT("regen", "5138");
+	await txn.wait();
+
+	let nft = await domainContract.getNFT("regen");
+	console.log("Token:", nft);
 	// Trying to set a record that doesn't belong to me!
 	// txn = await domainContract.connect(randomPerson).setRecord("regen", "Haha my domain now!");
 	// await txn.wait();
