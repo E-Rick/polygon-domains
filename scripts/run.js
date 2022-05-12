@@ -7,15 +7,19 @@ const main = async () => {
 	console.log("Contract deployed to:", domainContract.address);
 	console.log("Contract deployed by:", owner.address);
 
-	let txn = await domainContract.register("doom");
+	let txn = await domainContract.register("regen");
 	await txn.wait();
 
-	const domainAddress = await domainContract.getAddress("doom");
-	console.log("Owner of domain doom:", domainAddress);
+	const domainAddress = await domainContract.getAddress("regen");
+	console.log("Owner of domain regen:", domainAddress);
 
+	txn = await domainContract.setRecord("regen", "https://twitter.com/wrecsx");
+	await txn.wait();
+	let record = await domainContract.getRecord("regen");
+	console.log("Record:", record);
 	// Trying to set a record that doesn't belong to me!
-	txn = await domainContract.connect(randomPerson).setRecord("doom", "Haha my domain now!");
-	await txn.wait();
+	// txn = await domainContract.connect(randomPerson).setRecord("regen", "Haha my domain now!");
+	// await txn.wait();
 };
 
 const runMain = async () => {
