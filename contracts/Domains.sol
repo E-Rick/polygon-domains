@@ -13,14 +13,22 @@ import {Base64} from "./libraries/Base64.sol";
 
 import "hardhat/console.sol";
 
+error Unauthorized();
+error AlreadyRegistered();
+error InvalidName(string name);
+
 // We inherit the contract we imported. This means we'll have access
 // to the inherited contract's methods.
 contract Domains is ERC721URIStorage {
     // Magic given to us by OpenZeppelin to help us keep track of tokenIds.
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
+
     // Here's our domain TLD!
     string public tld;
+
+    // Add this at the top of your contract next to the other mappings
+    mapping(uint256 => string) public names;
 
     address payable public owner;
 
@@ -60,7 +68,8 @@ contract Domains is ERC721URIStorage {
     // A register function that adds their names to our mapping
     function register(string calldata name) public payable {
         // Check that the name is unregistered (explained in notes)
-        require(domains[name] == address(0));
+        if (domains[name] != address(0)) revert AlreadyRegistered();
+        if (!valid(name)) revert InvalidName(name);
 
         uint256 _price = price(name);
         // Check if enough Matic was paid in the transaction
@@ -112,6 +121,7 @@ contract Domains is ERC721URIStorage {
         _setTokenURI(newRecordId, finalTokenUri);
         domains[name] = msg.sender;
 
+        names[newRecordId] = name;
         _tokenIds.increment();
 
         // domains[name] = msg.sender;
@@ -125,8 +135,13 @@ contract Domains is ERC721URIStorage {
 
     function setRecord(string calldata name, string calldata record) public {
         // Check that the owner is the transaction sender
+        if (msg.sender != domains[name]) revert Unauthorized();
         require(domains[name] == msg.sender);
         records[name] = record;
+    }
+
+    function valid(string calldata name) public pure returns (bool) {
+        return StringUtils.strlen(name) >= 3 && StringUtils.strlen(name) <= 10;
     }
 
     function getRecord(string calldata name)
@@ -151,5 +166,17 @@ contract Domains is ERC721URIStorage {
 
         (bool success, ) = msg.sender.call{value: amount}("");
         require(success, "Failed to withdraw Matic");
+    }
+
+    // Add this anywhere in your contract body
+    function getAllNames() public view returns (string[] memory) {
+        console.log("Getting all names from contract");
+        string[] memory allNames = new string[](_tokenIds.current());
+        for (uint256 i = 0; i < _tokenIds.current(); i++) {
+            allNames[i] = names[i];
+            console.log("Name for token %d is %s", i, allNames[i]);
+        }
+
+        return allNames;
     }
 }
